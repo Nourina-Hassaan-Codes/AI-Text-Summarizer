@@ -18,7 +18,6 @@ def clean_and_truncate(
     max_chars: int = 2000,
 ) -> str:
     """Clean and truncate text to a maximum number of characters."""
-
     cleaned = " ".join(text.split())
 
     if len(cleaned) > max_chars:
@@ -29,16 +28,12 @@ def clean_and_truncate(
 
 def fetch_text_from_url(url: str) -> str:
     """Fetch and extract text content from a URL."""
-
     try:
         response = requests.get(
             url,
             timeout=10,
-            headers={
-                "User-Agent": "Mozilla/5.0"
-            },
+            headers={"User-Agent": "Mozilla/5.0"},
         )
-
         response.raise_for_status()
 
         soup = BeautifulSoup(
@@ -52,7 +47,6 @@ def fetch_text_from_url(url: str) -> str:
         ]
 
         text = " ".join(paragraphs)
-
         return clean_and_truncate(text)
 
     except requests.RequestException as error:
@@ -61,18 +55,10 @@ def fetch_text_from_url(url: str) -> str:
 
 
 class Summarizer:
-    """AI text summarization service."""
-
-    def __init__(
-        self,
-        model_name: str = "sshleifer/distilbart-cnn-12-6",
-    ):
+    def __init__(self, model_name: str):
         self.model_name = model_name
-       
-        # Pass model name directly without the first "summarization" positional argument
-        self.pipeline = pipeline(
-            model=model_name
-            )
+        # Use "summarization" task for models like distilbart and bart-large-cnn
+        self.pipeline = pipeline("summarization", model=model_name)
 
     def summarize(
         self,
@@ -82,10 +68,9 @@ class Summarizer:
         do_sample: bool = False,
     ) -> str:
         """Generate a summary from the provided text."""
-
         text = clean_and_truncate(text)
 
-        if not text:
+        if not text.strip():
             return "No text was provided."
 
         result = self.pipeline(
@@ -104,13 +89,11 @@ class Summarizer:
 @st.cache_resource
 def load_summarizer(model_name: str) -> Summarizer:
     """Load and cache the summarization model."""
-
     return Summarizer(model_name)
 
 
 def main():
     """Run the Streamlit application."""
-
     st.title("📝 Text Summarization App")
 
     st.markdown(
@@ -175,9 +158,7 @@ def main():
             )
 
             if uploaded_file is not None:
-                raw_text = uploaded_file.read().decode(
-                    "utf-8"
-                )
+                raw_text = uploaded_file.read().decode("utf-8")
 
         elif input_mode == "URL":
             url_input = st.text_input(
@@ -186,9 +167,7 @@ def main():
             )
 
             if url_input:
-                raw_text = fetch_text_from_url(
-                    url_input
-                )
+                raw_text = fetch_text_from_url(url_input)
 
         summarize_btn = st.button(
             "Summarize",
@@ -198,32 +177,22 @@ def main():
 
     with right:
         st.subheader("Input Text")
-
         source_container = st.empty()
 
         st.subheader("Summary Output")
-
         summary_container = st.empty()
 
     if summarize_btn:
-
         if not raw_text or not raw_text.strip():
-            st.warning(
-                "Please provide text before summarizing."
-            )
+            st.warning("Please provide text before summarizing.")
             return
 
         if min_length >= max_length:
-            st.warning(
-                "Minimum length must be smaller than "
-                "maximum length."
-            )
+            st.warning("Minimum length must be smaller than maximum length.")
             return
 
         with st.spinner("Loading AI model..."):
-            summarizer = load_summarizer(
-                model_choice
-            )
+            summarizer = load_summarizer(model_choice)
 
         with st.spinner("Generating summary..."):
             try:
@@ -249,9 +218,7 @@ def main():
                 )
 
             except Exception as error:
-                st.error(
-                    f"An error occurred: {error}"
-                )
+                st.error(f"An error occurred: {error}")
 
 
 if __name__ == "__main__":
