@@ -68,10 +68,11 @@ class Summarizer:
         model_name: str = "sshleifer/distilbart-cnn-12-6",
     ):
         self.model_name = model_name
+       
+        # Pass model name directly without the first "summarization" positional argument
         self.pipeline = pipeline(
-            "summarization",
             model=model_name
-        )
+            )
 
     def summarize(
         self,
